@@ -5,37 +5,48 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Учебная Платформа</title>
   <style>
-    body { font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; display: flex; justify-content: center; }
-    .card { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 600px; position: relative; }
-    h2, h3 { text-align: center; color: #333; }
+    body { font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; box-sizing: border-box; }
+    
+    /* Окно входа (посередине) */
+    .card-login { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+    
+    /* Большое рабочее окно на весь экран */
+    .card-app { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 95vw; height: 90vh; display: flex; flex-direction: column; box-sizing: border-box; }
+    
+    h2, h3 { text-align: center; color: #333; margin-top: 0; }
     select, input, button, textarea { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
     button { background-color: #4CAF50; color: white; font-weight: bold; cursor: pointer; border: none; }
     button:hover { background-color: #45a049; }
     .hidden { display: none; }
     .error { color: red; text-align: center; font-size: 14px; }
-    .logout-btn { background-color: #f44336; margin-top: 15px; }
+    .logout-btn { background-color: #f44336; margin-top: auto; }
     
-    /* Верхняя панель с иконкой управления */
+    /* Верхняя панель */
     .top-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
     .admin-icon-btn { background: none; border: none; font-size: 24px; cursor: pointer; width: auto; padding: 5px 10px; }
     .admin-icon-btn:hover { background: #eee; border-radius: 5px; }
 
-    /* Вкладки */
-    .tabs-header { display: flex; gap: 5px; border-bottom: 2px solid #ddd; margin-bottom: 15px; flex-wrap: wrap; }
-    .tab-btn { padding: 8px 15px; background: #ddd; border: none; cursor: pointer; border-radius: 5px 5px 0 0; width: auto; font-weight: normal; color: #333; }
-    .tab-btn.active { background: #4CAF50; color: white; font-weight: bold; }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
+    /* Основной макет: слева вкладки, справа контент */
+    .app-body { display: flex; flex: 1; gap: 20px; overflow: hidden; }
     
-    /* Модальные окна */
+    /* Левая колонка с вкладками */
+    .sidebar-tabs { width: 250px; display: flex; flex-direction: column; gap: 5px; border-right: 1px solid #eee; padding-right: 15px; overflow-y: auto; }
+    .tab-btn { padding: 10px 15px; background: #f1f1f1; border: none; cursor: pointer; border-radius: 5px; text-align: left; width: 100%; font-weight: normal; color: #333; }
+    .tab-btn.active { background: #4CAF50; color: white; font-weight: bold; }
+    
+    /* Правая колонка с содержимым вкладки */
+    .content-area { flex: 1; overflow-y: auto; padding-left: 5px; display: flex; flex-direction: column; }
+    .tab-content { display: none; height: 100%; flex-direction: column; }
+    .tab-content.active { display: flex; }
+    
+    /* Модальное окно админа */
     .modal { background: #f9f9f9; border: 1px solid #ccc; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
   </style>
 </head>
 <body>
 
-<div class="card">
   <!-- Форма входа -->
-  <div id="login-screen">
+  <div id="login-screen" class="card-login">
     <h2>Вход в систему</h2>
     <label>Выберите роль:</label>
     <select id="role-select">
@@ -50,18 +61,18 @@
     <div id="error-msg" class="error"></div>
   </div>
 
-  <!-- Главный кабинет (общий для всех после входа) -->
-  <div id="main-dashboard" class="hidden">
+  <!-- Главный кабинет (большой, на весь экран) -->
+  <div id="main-dashboard" class="card-app hidden">
     <div class="top-bar">
       <div>
         <h3 id="welcome-title" style="margin:0; text-align: left;">Кабинет</h3>
         <small id="role-subtitle" style="color: gray;"></small>
       </div>
-      <!-- Кнопка с иконкой человека сверху справа (только для админа) -->
+      <!-- Кнопка управления пользователями (сверху справа) -->
       <button id="admin-panel-btn" class="admin-icon-btn hidden" onclick="toggleAdminPanel()" title="Управление пользователями">👤</button>
     </div>
 
-    <!-- Панель админа (скрытая, открывается по клику на иконку) -->
+    <!-- Панель админа (скрытая) -->
     <div id="admin-user-manager" class="modal hidden">
       <h4>Управление пользователями</h4>
       <select id="new-user-role">
@@ -84,24 +95,23 @@
       <button onclick="createTab()">Создать вкладку</button>
     </div>
 
-    <!-- Меню вкладок -->
-    <div class="tabs-header" id="tabs-header"></div>
-    <div id="tabs-contents"></div>
+    <!-- Основной макет: слева вкладки, справа контент -->
+    <div class="app-body">
+      <div class="sidebar-tabs" id="tabs-header"></div>
+      <div class="content-area" id="tabs-contents"></div>
+    </div>
 
-    <button class="logout-btn" onclick="logout()">Выйти из системы</button>
+    <button class="logout-btn" onclick="logout()" style="max-width: 200px;">Выйти из системы</button>
   </div>
-</div>
 
 <script>
   const ADMIN_USER = "aigerim1992";
   const ADMIN_PASS = "14061992";
 
-  // Инициализация памяти
   if (!localStorage.getItem("users")) localStorage.setItem("users", JSON.stringify([]));
   if (!localStorage.getItem("tabs")) {
-    // Базовые вкладки по умолчанию
     localStorage.setItem("tabs", JSON.stringify([
-      { id: "tab_1", name: "Оценки класса", type: "grades", data: [] },
+      { id: "tab_1", name: "Оценки класса", type: "grades", grades: {} },
       { id: "tab_2", name: "Видео и Книги", type: "media", url: "" },
       { id: "tab_3", name: "Общий чат", type: "chat", messages: [] }
     ]));
@@ -156,8 +166,7 @@
   }
 
   function toggleAdminPanel() {
-    const panel = document.getElementById("admin-user-manager");
-    panel.classList.toggle("hidden");
+    document.getElementById("admin-user-manager").classList.toggle("hidden");
   }
 
   function createUser() {
@@ -189,7 +198,9 @@
       id: "tab_" + Date.now(),
       name: name,
       type: type,
-      data: type === 'grades' ? [] : (type === 'media' ? '' : [])
+      grades: {},
+      url: "",
+      messages: []
     };
 
     tabs.push(newTab);
@@ -216,30 +227,27 @@
     const tabs = JSON.parse(localStorage.getItem("tabs"));
 
     tabs.forEach((tab, index) => {
-      // Кнопка вкладки
       const btn = document.createElement("button");
       btn.className = `tab-btn ${index === 0 ? 'active' : ''}`;
       btn.textContent = tab.name;
-      btn.onclick = () => switchTab(tab.id);
+      btn.onclick = (e) => switchTab(tab.id, e);
       tabsHeader.appendChild(btn);
 
-      // Контент вкладки
       const content = document.createElement("div");
       content.className = `tab-content ${index === 0 ? 'active' : ''}`;
       content.id = `content_${tab.id}`;
 
-      // Кнопка удаления вкладки для админа
-      let deleteHtml = currentRole === 'admin' ? `<button onclick="deleteTab('${tab.id}')" style="background:#f44336; width:auto; padding:3px 8px; font-size:12px; margin-bottom:10px;">Удалить вкладку</button>` : '';
+      let deleteHtml = currentRole === 'admin' ? `<button onclick="deleteTab('${tab.id}')" style="background:#f44336; width:auto; padding:5px 10px; font-size:12px; margin-bottom:10px;">Удалить вкладку</button>` : '';
 
       if (tab.type === 'grades') {
         let users = JSON.parse(localStorage.getItem("users")).filter(u => u.role === 'student');
-        let gradesData = tab.grades || {}; // { studentName: "оценка" }
+        let gradesData = tab.grades || {};
 
         let rows = users.map(s => `
           <tr>
             <td>${s.username}</td>
             <td><b>${gradesData[s.username] || 'Нет оценки'}</b></td>
-            ${currentRole === 'teacher' || currentRole === 'admin' ? `<td><input type="text" id="grade_${tab.id}_${s.username}" placeholder="Оценка" style="width:80px; margin:0;"><button onclick="saveGrade('${tab.id}', '${s.username}')" style="width:auto; padding:5px 10px; margin:0;">Поставить</button></td>` : ''}
+            ${currentRole === 'teacher' || currentRole === 'admin' ? `<td><input type="text" id="grade_${tab.id}_${s.username}" placeholder="Оценка" style="width:100px; margin:0;"><button onclick="saveGrade('${tab.id}', '${s.username}')" style="width:auto; padding:5px 10px; margin:0;">Поставить</button></td>` : ''}
           </tr>
         `).join('');
 
@@ -256,28 +264,30 @@
         content.innerHTML = `
           ${deleteHtml}
           <h4>Медиа-материалы (Видео / Картинки)</h4>
-          <p>Ссылка на ресурс: <a href="${tab.url || '#'}" target="_blank">${tab.url || 'Не задана'}</a></p>
+          <p>Текущая ссылка: <a href="${tab.url || '#'}" target="_blank">${tab.url || 'Не задана'}</a></p>
           ${currentRole === 'admin' || currentRole === 'teacher' ? `
             <input type="text" id="media_url_${tab.id}" placeholder="Вставьте ссылку на видео или картинку" value="${tab.url || ''}">
             <button onclick="saveMedia('${tab.id}')">Сохранить ссылку</button>
           ` : ''}
-          <div style="margin-top:15px;">
-            ${tab.url ? `<iframe src="${tab.url}" width="100%" height="300px" style="border:none;"></iframe><br><img src="${tab.url}" style="max-width:100%; margin-top:10px;" onerror="this.style.display='none'">` : 'Ссылка не указана'}
+          <div style="margin-top:15px; flex:1;">
+            ${tab.url ? `<iframe src="${tab.url}" width="100%" height="100%" style="border:none; min-height:400px;"></iframe><br><img src="${tab.url}" style="max-width:100%; margin-top:10px;" onerror="this.style.display='none'">` : 'Ссылка не указана'}
           </div>
         `;
       } 
       else if (tab.type === 'chat') {
         let messages = tab.messages || [];
-        let chatHtml = messages.map(m => `<p><b>${m.user} (${m.role}):</b> ${m.text}</p>`).join('');
+        let chatHtml = messages.map(m => `<p style="margin:5px 0;"><b>${m.user} (${m.role}):</b> ${m.text}</p>`).join('');
 
         content.innerHTML = `
           ${deleteHtml}
           <h4>Чат</h4>
-          <div style="border: 1px solid #ccc; background: white; height: 150px; overflow-y: scroll; padding: 10px; margin-bottom: 10px;" id="chat_box_${tab.id}">
+          <div style="border: 1px solid #ccc; background: white; flex:1; min-height:200px; overflow-y: scroll; padding: 10px; margin-bottom: 10px;" id="chat_box_${tab.id}">
             ${chatHtml || '<span style="color:gray;">Сообщений нет...</span>'}
           </div>
-          <input type="text" id="chat_text_${tab.id}" placeholder="Введите сообщение...">
-          <button onclick="sendMessage('${tab.id}')">Отправить</button>
+          <div style="display: flex; gap: 10px;">
+            <input type="text" id="chat_text_${tab.id}" placeholder="Введите сообщение..." style="margin:0;">
+            <button onclick="sendMessage('${tab.id}')" style="width: 120px; margin:0;">Отправить</button>
+          </div>
         `;
       }
 
@@ -285,7 +295,7 @@
     });
   }
 
-  function switchTab(tabId) {
+  function switchTab(tabId, event) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     event.target.classList.add('active');
