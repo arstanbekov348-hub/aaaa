@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Учебная Платформа</title>
+  <style>
+    body { font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; display: flex; justify-content: center; }
+    .card { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+    h2, h3 { text-align: center; color: #333; }
+    select, input, button { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+    button { background-color: #4CAF50; color: white; font-weight: bold; cursor: pointer; border: none; }
+    button:hover { background-color: #45a049; }
+    .hidden { display: none; }
+    .error { color: red; text-align: center; font-size: 14px; }
+    .logout-btn { background-color: #f44336; margin-top: 15px; }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <!-- Форма входа -->
+  <div id="login-screen">
+    <h2>Вход в систему</h2>
+    <label>Выберите роль:</label>
+    <select id="role-select">
+      <option value="admin">Администратор</option>
+      <option value="teacher">Учитель</option>
+      <option value="student">Ученик</option>
+    </select>
+
+    <input type="text" id="username" placeholder="Логин">
+    <input type="password" id="password" placeholder="Пароль">
+    <button onclick="login()">Войти</button>
+    <div id="error-msg" class="error"></div>
+  </div>
+
+  <!-- Кабинет Администратора -->
+  <div id="admin-dashboard" class="hidden">
+    <h3>Панель Администратора</h3>
+    <p>Создать пользователя:</p>
+    <select id="new-user-role">
+      <option value="teacher">Учитель</option>
+      <option value="student">Ученик</option>
+    </select>
+    <input type="text" id="new-username" placeholder="Новый логин">
+    <input type="password" id="new-password" placeholder="Новый пароль">
+    <button onclick="createUser()">Создать пользователя</button>
+    <div id="admin-msg" style="color: green; text-align: center;"></div>
+    
+    <button class="logout-btn" onclick="logout()">Выйти</button>
+  </div>
+
+  <!-- Кабинет Учителя / Ученика -->
+  <div id="user-dashboard" class="hidden">
+    <h3 id="welcome-title"></h3>
+    <p>Добро пожаловать в учебный кабинет!</p>
+    <button class="logout-btn" onclick="logout()">Выйти</button>
+  </div>
+</div>
+
+<script>
+  // Стандартный администратор
+  const ADMIN_USER = "aigerim1992";
+  const ADMIN_PASS = "14061992";
+
+  // Инициализация базы пользователей в localStorage (память браузера)
+  if (!localStorage.getItem("users")) {
+    localStorage.setItem("users", JSON.stringify([]));
+  }
+
+  function login() {
+    const role = document.getElementById("role-select").value;
+    const user = document.getElementById("username").value.trim();
+    const pass = document.getElementById("password").value.trim();
+    const error = document.getElementById("error-msg");
+    error.textContent = "";
+
+    // Вход для администратора
+    if (role === "admin") {
+      if (user === ADMIN_USER && pass === ADMIN_PASS) {
+        showDashboard("admin");
+      } else {
+        error.textContent = "Неверный логин или пароль администратора";
+      }
+      return;
+    }
+
+    // Вход для учителя или ученика
+    const users = JSON.parse(localStorage.getItem("users"));
+    const foundUser = users.find(u => u.username === user && u.password === pass && u.role === role);
+
+    if (foundUser) {
+      showDashboard(role, foundUser.username);
+    } else {
+      error.textContent = "Пользователь не найден или данные не верны";
+    }
+  }
+
+  function createUser() {
+    const role = document.getElementById("new-user-role").value;
+    const user = document.getElementById("new-username").value.trim();
+    const pass = document.getElementById("new-password").value.trim();
+    const msg = document.getElementById("admin-msg");
+
+    if (!user || !pass) {
+      alert("Заполните все поля!");
+      return;
+    }
+
+    const users = JSON.parse(localStorage.getItem("users"));
+    
+    if (users.some(u => u.username === user)) {
+      alert("Пользователь с таким логином уже существует!");
+      return;
+    }
+
+    users.push({ username: user, password: pass, role: role });
+    localStorage.setItem("users", JSON.stringify(users));
+
+    msg.textContent = `Успешно создан ${role === 'teacher' ? 'Учитель' : 'Ученик'}: ${user}`;
+    document.getElementById("new-username").value = "";
+    document.getElementById("new-password").value = "";
+  }
+
+  function showDashboard(role, username = "") {
+    document.getElementById("login-screen").classList.add("hidden");
+    if (role === "admin") {
+      document.getElementById("admin-dashboard").classList.remove("hidden");
+    } else {
+      document.getElementById("user-dashboard").classList.remove("hidden");
+      document.getElementById("welcome-title").textContent = 
+        `Кабинет: ${role === 'teacher' ? 'Учитель' : 'Ученик'} (${username})`;
+    }
+  }
+
+  function logout() {
+    document.getElementById("login-screen").classList.remove("hidden");
+    document.getElementById("admin-dashboard").classList.add("hidden");
+    document.getElementById("user-dashboard").classList.add("hidden");
+    document.getElementById("username").value = "";
+    document.getElementById("password").value = "";
+  }
+</script>
+
+</body>
+</html>
