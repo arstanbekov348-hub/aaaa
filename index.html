@@ -3,600 +3,524 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ProgressMe Online — Учебная Платформа</title>
+  <title>ProgressMe Live — Онлайн Платформа</title>
+  <!-- Firebase для реального онлайна и синхронизации -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <style>
     :root {
-      --primary-color: #10b981;
+      --primary: #10b981;
       --primary-hover: #059669;
-      --bg-color: #f3f4f6;
-      --card-bg: #ffffff;
-      --text-color: #1f2937;
-      --border-color: #e5e7eb;
+      --bg: #f3f4f6;
+      --text: #1f2937;
+      --border: #e5e7eb;
     }
 
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: var(--bg-color);
-      color: var(--text-color);
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
       margin: 0;
       padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
       height: 100vh;
       overflow: hidden;
     }
 
-    /* Анимации */
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(5px); }
+      from { opacity: 0; transform: translateY(4px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
-    @keyframes pulseGreen {
-      0% { transform: scale(0.95); boxShadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-      70% { transform: scale(1); boxShadow: 0 0 0 6px rgba(16, 185, 129, 0); }
-      100% { transform: scale(0.95); boxShadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-    }
-
     /* Экран входа */
-    .login-container {
-      background: var(--card-bg);
-      padding: 40px;
-      border-radius: 16px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    .login-box {
+      background: white;
+      padding: 35px;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
       width: 100%;
-      max-width: 420px;
-      animation: fadeIn 0.4s ease-out;
+      max-width: 380px;
+      margin: 100px auto;
+      animation: fadeIn 0.3s ease-out;
     }
 
-    .login-container h2 {
-      text-align: center;
-      margin-bottom: 25px;
-      color: #111827;
-    }
-
-    /* Основное приложение на весь экран */
-    .app-container {
-      background: var(--card-bg);
+    .app-viewport {
       width: 100vw;
       height: 100vh;
       display: flex;
       flex-direction: column;
       animation: fadeIn 0.3s ease-out;
-      box-sizing: border-box;
     }
 
-    /* Верхняя панель */
-    .top-bar {
+    /* Шапка */
+    .header {
+      background: white;
+      padding: 12px 24px;
+      border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 15px 25px;
-      background: #ffffff;
-      border-bottom: 1px solid var(--border-color);
-      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
     }
 
-    .user-info {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .online-indicator {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 14px;
+    .online-badge {
       background: #ecfdf5;
       color: #065f46;
-      padding: 6px 12px;
+      border: 1px solid #a7f3d0;
+      padding: 6px 14px;
       border-radius: 20px;
-      border: 1px solid #d1fae5;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .green-dot {
-      width: 10px;
-      height: 10px;
-      background-color: #10b981;
+      width: 9px;
+      height: 9px;
+      background-color: var(--primary);
       border-radius: 50%;
-      display: inline-block;
-      animation: pulseGreen 2s infinite;
+      animation: pulse 2s infinite;
     }
 
-    /* Кнопки и формы */
-    select, input, textarea {
-      width: 100%;
-      padding: 12px 16px;
-      margin: 8px 0 16px 0;
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      box-sizing: border-box;
-      font-size: 14px;
-      transition: all 0.2s;
-    }
-
-    select:focus, input:focus, textarea:focus {
-      border-color: var(--primary-color);
-      outline: none;
-      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
-    }
-
-    button {
-      background-color: var(--primary-color);
-      color: white;
-      font-weight: 600;
-      padding: 12px 20px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
-    }
-
-    button:hover {
-      background-color: var(--primary-hover);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
-    }
-
-    button:active {
-      transform: translateY(1px);
-    }
-
-    .icon-btn {
-      background: none;
-      border: none;
-      font-size: 22px;
-      cursor: pointer;
-      padding: 8px;
-      border-radius: 50%;
-      transition: background 0.2s;
-      box-shadow: none;
-    }
-
-    .icon-btn:hover {
-      background: #f3f4f6;
-      transform: none;
-      box-shadow: none;
-    }
-
-    .danger-btn {
-      background-color: #ef4444;
-      box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
-    }
-    .danger-btn:hover {
-      background-color: #dc2626;
-      box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
-    }
-
-    /* Рабочая область со вкладками слева */
-    .workspace {
+    /* Основной макет */
+    .main-layout {
       display: flex;
       flex: 1;
       overflow: hidden;
     }
 
     .sidebar {
-      width: 280px;
+      width: 270px;
       background: #f9fafb;
-      border-right: 1px solid var(--border-color);
+      border-right: 1px solid var(--border);
+      padding: 15px 10px;
       display: flex;
       flex-direction: column;
-      padding: 20px 10px;
-      gap: 8px;
+      gap: 6px;
       overflow-y: auto;
     }
 
-    .tab-btn {
+    .tab-item {
+      padding: 12px 16px;
+      border-radius: 8px;
       background: transparent;
+      border: none;
       color: #4b5563;
       text-align: left;
-      border-radius: 8px;
-      padding: 12px 16px;
-      box-shadow: none;
-      font-weight: 500;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
     }
 
-    .tab-btn:hover {
-      background: #e5e7eb;
-      color: #1f2937;
-      transform: none;
-      box-shadow: none;
-    }
+    .tab-item:hover { background: #e5e7eb; color: var(--text); }
+    .tab-item.active { background: var(--primary); color: white; box-shadow: 0 2px 5px rgba(16,185,129,0.3); }
 
-    .tab-btn.active {
-      background: var(--primary-color);
-      color: white;
-      box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
-    }
-
-    .content-pane {
+    .content-area {
       flex: 1;
-      padding: 30px;
+      padding: 25px;
       overflow-y: auto;
-      background: #ffffff;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .tab-content {
-      display: none;
-      height: 100%;
-      flex-direction: column;
-      animation: fadeIn 0.2s ease-out;
-    }
-
-    .tab-content.active {
-      display: flex;
-    }
-
-    /* Модальное окно админа */
-    .admin-modal {
-      position: absolute;
-      top: 75px;
-      right: 25px;
       background: white;
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.12);
-      width: 350px;
+    }
+
+    .tab-panel { display: none; height: 100%; flex-direction: column; animation: fadeIn 0.2s ease-out; }
+    .tab-panel.active { display: flex; }
+
+    input, select, button {
+      padding: 10px 14px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      margin: 5px 0;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    button:hover { background: var(--primary-hover); transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+    .btn-danger { background: #ef4444; }
+    .btn-danger:hover { background: #dc2626; }
+
+    .users-list-popup {
+      position: absolute;
+      top: 60px;
+      right: 20px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 15px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
       z-index: 100;
+      width: 300px;
       animation: fadeIn 0.2s ease-out;
     }
 
     .hidden { display: none !important; }
-    .error-text { color: #ef4444; text-align: center; font-size: 14px; margin-top: 10px; }
   </style>
 </head>
 <body>
 
-  <!-- ЭКРАН ВХОДА -->
-  <div id="login-screen" class="login-container">
-    <h2>Вход в ProgressMe</h2>
-    <label>Роль в системе:</label>
-    <select id="role-select">
+  <!-- ФОРМА ВХОДА -->
+  <div id="login-screen" class="login-box">
+    <h3 style="margin-top:0; text-align:center;">Вход в ProgressMe</h3>
+    <label style="font-size:12px; font-weight:600;">Роль в системе:</label>
+    <select id="role-select" style="width:100%;">
       <option value="admin">Администратор</option>
       <option value="teacher">Учитель</option>
       <option value="student">Ученик</option>
     </select>
 
-    <label>Логин:</label>
-    <input type="text" id="username" placeholder="Введите логин...">
-
-    <label>Пароль:</label>
-    <input type="password" id="password" placeholder="Введите пароль...">
-
-    <button onclick="login()" style="width: 100%; margin-top: 10px;">Войти в систему</button>
-    <div id="error-msg" class="error-text"></div>
+    <label style="font-size:12px; font-weight:600;">Логин:</label>
+    <input type="text" id="username" placeholder="Ваш логин..." style="width:100%;">
+    
+    <label style="font-size:12px; font-weight:600;">Пароль:</label>
+    <input type="password" id="password" placeholder="Пароль..." style="width:100%;">
+    
+    <button onclick="login()" style="width:100%; margin-top:12px;">Войти в класс</button>
+    <div id="error-msg" style="color:#ef4444; font-size:13px; margin-top:10px; text-align:center;"></div>
   </div>
 
-  <!-- ОСНОВНОЙ КАБИНЕТ НА ВЕСЬ ЭКРАН -->
-  <div id="main-dashboard" class="app-container hidden">
-    
-    <!-- ВЕРХНЯЯ ПАНЕЛЬ -->
-    <div class="top-bar">
-      <div class="user-info">
-        <h3 id="welcome-title" style="margin:0; color:#111827;">Кабинет</h3>
-        <span id="role-badge" style="background:#e0e7ff; color:#3730a3; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;">Роль</span>
+  <!-- ОНЛАЙН КАБИНЕТ -->
+  <div id="main-dashboard" class="app-viewport hidden">
+    <!-- Шапка -->
+    <div class="header">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <h4 id="user-display" style="margin:0;">Пользователь</h4>
+        <span id="role-tag" style="background:#e0e7ff; color:#3730a3; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:600;"></span>
       </div>
 
-      <div style="display: flex; align-items: center; gap: 15px;">
-        <!-- Индикатор онлайн со статусом -->
-        <div class="online-indicator">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <!-- Индикатор онлайн -->
+        <div class="online-badge">
           <span class="green-dot"></span>
-          <span id="online-status-text">Онлайн</span>
+          <span>Онлайн: <b id="online-count">1</b> чел.</span>
         </div>
 
-        <!-- Кнопка панели администратора (иконка человека) -->
-        <button id="admin-panel-btn" class="icon-btn hidden" onclick="toggleAdminPanel()" title="Панель управления">👤</button>
-        
-        <button class="danger-btn" onclick="logout()" style="padding: 8px 16px; font-size: 13px;">Выйти</button>
+        <!-- Кнопка участников и админ-панели -->
+        <button onclick="toggleUsersPopup()" style="background:#f3f4f6; color:#374151; padding:7px 14px;" title="Список участников и админка">👤 Участники</button>
+        <button class="btn-danger" onclick="logout()" style="padding:7px 14px;">Выйти</button>
       </div>
     </div>
 
-    <!-- МОДАЛЬНОЕ ОКНО АДМИНИСТРАТОРА -->
-    <div id="admin-user-manager" class="admin-modal hidden">
-      <h4 style="margin-top:0; color:#111827;">Управление платформой</h4>
-      
-      <label style="font-size: 13px; font-weight: 600;">Создать пользователя:</label>
-      <select id="new-user-role">
-        <option value="teacher">Учитель</option>
-        <option value="student">Ученик</option>
-      </select>
-      <input type="text" id="new-username" placeholder="Логин нового пользователя">
-      <input type="password" id="new-password" placeholder="Пароль пользователя">
-      <button onclick="createUser()" style="width:100%; margin-bottom: 15px;">Создать аккаунт</button>
-      <div id="admin-msg" style="color: #10b981; text-align: center; font-size: 13px; margin-bottom: 10px;"></div>
-      
-      <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 15px 0;">
+    <!-- Всплывающее окно (Список онлайн + Создание юзеров и вкладок для Админа) -->
+    <div id="users-popup" class="users-list-popup hidden">
+      <h5 style="margin:0 0 8px 0; color:#111827;">Сейчас в онлайн-классе:</h5>
+      <ul id="online-users-list" style="padding-left:18px; margin:0 0 15px 0; font-size:13px; color:#059669;"></ul>
 
-      <label style="font-size: 13px; font-weight: 600;">Создать новую вкладку:</label>
-      <input type="text" id="tab-name" placeholder="Название вкладки">
-      <select id="tab-type">
-        <option value="grades">Оценочный журнал</option>
-        <option value="media">Книжный / Медиа (Видео)</option>
-        <option value="chat">Интерактивный чат</option>
-      </select>
-      <button onclick="createTab()" style="width:100%;">Добавить вкладку</button>
+      <div id="admin-tools" class="hidden" style="border-top:1px solid var(--border); padding-top:12px;">
+        <h5 style="margin:0 0 6px 0; color:#111827;">Создать пользователя:</h5>
+        <select id="new-role" style="width:100%;"><option value="teacher">Учитель</option><option value="student">Ученик</option></select>
+        <input type="text" id="new-user" placeholder="Логин" style="width:100%;">
+        <input type="password" id="new-pass" placeholder="Пароль" style="width:100%;">
+        <button onclick="createUser()" style="width:100%; margin-bottom:12px;">Создать аккаунт</button>
+
+        <h5 style="margin:0 0 6px 0; color:#111827;">Создать новую вкладку:</h5>
+        <input type="text" id="new-tab-name" placeholder="Название вкладки" style="width:100%;">
+        <select id="new-tab-type" style="width:100%;">
+          <option value="grades">Оценочный журнал</option>
+          <option value="media">Книжный / Медиа (Видео/Картинка)</option>
+          <option value="chat">Интерактивный чат</option>
+        </select>
+        <button onclick="createTab()" style="width:100%;">Добавить вкладку</button>
+      </div>
     </div>
 
-    <!-- РАБОЧАЯ ОБЛАСТЬ (Слева вкладки, справа контент) -->
-    <div class="workspace">
-      <!-- Сайдбар слева -->
-      <div class="sidebar" id="tabs-header"></div>
-      
+    <!-- Основная рабочая область -->
+    <div class="main-layout">
+      <!-- Динамический список вкладок слева -->
+      <div class="sidebar" id="sidebar-tabs"></div>
+
       <!-- Контент справа -->
-      <div class="content-pane" id="tabs-contents"></div>
+      <div class="content-area" id="tabs-contents"></div>
     </div>
-
   </div>
 
 <script>
-  const ADMIN_USER = "aigerim1992";
-  const ADMIN_PASS = "14061992";
+  // Бесплатная облачная база данных Firebase для реального онлайна
+  const firebaseConfig = {
+    databaseURL: "https://progressme-free-default-rtdb.firebaseio.com/"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
 
-  // Инициализация памяти приложения
-  if (!localStorage.getItem("users")) localStorage.setItem("users", JSON.stringify([]));
-  if (!localStorage.getItem("tabs")) {
-    localStorage.setItem("tabs", JSON.stringify([
-      { id: "tab_1", name: "📊 Оценки класса", type: "grades", grades: {} },
-      { id: "tab_2", name: "📚 Видео и Материалы", type: "media", url: "" },
-      { id: "tab_3", name: "💬 Общий чат урока", type: "chat", messages: [] }
-    ]));
-  }
+  const ADMIN_U = "aigerim1992";
+  const ADMIN_P = "14061992";
 
   let currentUser = null;
   let currentRole = null;
+  let activeTabId = null;
 
   function login() {
     const role = document.getElementById("role-select").value;
     const user = document.getElementById("username").value.trim();
     const pass = document.getElementById("password").value.trim();
-    const error = document.getElementById("error-msg");
-    error.textContent = "";
+    const err = document.getElementById("error-msg");
+    err.textContent = "";
 
     if (role === "admin") {
-      if (user === ADMIN_USER && pass === ADMIN_PASS) {
-        setSession("admin", user);
-      } else {
-        error.textContent = "Неверный логин или пароль администратора!";
-      }
+      if (user === ADMIN_U && pass === ADMIN_P) {
+        startSession("admin", user);
+      } else { err.textContent = "Неверный логин или пароль администратора!"; }
       return;
     }
 
-    const users = JSON.parse(localStorage.getItem("users"));
-    const found = users.find(u => u.username === user && u.password === pass && u.role === role);
-
-    if (found) {
-      setSession(role, found.username);
-    } else {
-      error.textContent = "Пользователь не найден или неверный пароль!";
-    }
+    db.ref('users/' + user).once('value', snapshot => {
+      const data = snapshot.val();
+      if (data && data.password === pass && data.role === role) {
+        startSession(role, user);
+      } else {
+        err.textContent = "Пользователь не найден или неверный пароль!";
+      }
+    });
   }
 
-  function setSession(role, username) {
-    currentRole = role;
+  function startSession(role, username) {
     currentUser = username;
-    
+    currentRole = role;
+
     document.getElementById("login-screen").classList.add("hidden");
     document.getElementById("main-dashboard").classList.remove("hidden");
-    
-    document.getElementById("welcome-title").textContent = username;
-    document.getElementById("role-badge").textContent = role === 'admin' ? 'Администратор' : role === 'teacher' ? 'Учитель' : 'Ученик';
-    document.getElementById("online-status-text").textContent = `${username} (Онлайн)`;
+    document.getElementById("user-display").textContent = username;
+    document.getElementById("role-tag").textContent = role === 'admin' ? 'Администратор' : role === 'teacher' ? 'Учитель' : 'Ученик';
 
-    if (role === "admin") {
-      document.getElementById("admin-panel-btn").classList.remove("hidden");
-    } else {
-      document.getElementById("admin-panel-btn").classList.add("hidden");
-      document.getElementById("admin-user-manager").classList.add("hidden");
+    if (role === 'admin') {
+      document.getElementById("admin-tools").classList.remove("hidden");
     }
 
-    renderTabs();
+    // Регистрация в списке ОНЛАЙН (удаляется при закрытии вкладки)
+    const presenceRef = db.ref('presence/' + username);
+    presenceRef.set({ username: username, role: role });
+    presenceRef.onDisconnect().remove();
+
+    initRealtimeSync();
   }
 
-  function toggleAdminPanel() {
-    document.getElementById("admin-user-manager").classList.toggle("hidden");
-  }
-
-  function createUser() {
-    const role = document.getElementById("new-user-role").value;
-    const user = document.getElementById("new-username").value.trim();
-    const pass = document.getElementById("new-password").value.trim();
-    const msg = document.getElementById("admin-msg");
-
-    if (!user || !pass) { alert("Заполните все поля!"); return; }
-
-    const users = JSON.parse(localStorage.getItem("users"));
-    if (users.some(u => u.username === user)) { alert("Такой логин уже занят!"); return; }
-
-    users.push({ username: user, password: pass, role: role });
-    localStorage.setItem("users", JSON.stringify(users));
-
-    msg.textContent = `Успешно создан: ${user}`;
-    document.getElementById("new-username").value = "";
-    document.getElementById("new-password").value = "";
-  }
-
-  function createTab() {
-    const name = document.getElementById("tab-name").value.trim();
-    const type = document.getElementById("tab-type").value;
-    if (!name) { alert("Введите название вкладки!"); return; }
-
-    const tabs = JSON.parse(localStorage.getItem("tabs"));
-    tabs.push({
-      id: "tab_" + Date.now(),
-      name: name,
-      type: type,
-      grades: {},
-      url: "",
-      messages: []
+  // Синхронизация данных в реальном времени
+  function initRealtimeSync() {
+    // 1. Кто онлайн
+    db.ref('presence').on('value', snapshot => {
+      const users = snapshot.val() || {};
+      const listEl = document.getElementById("online-users-list");
+      listEl.innerHTML = "";
+      let count = 0;
+      for (let u in users) {
+        count++;
+        let li = document.createElement("li");
+        li.textContent = `${users[u].username} (${users[u].role === 'admin' ? 'Админ' : users[u].role === 'teacher' ? 'Учитель' : 'Ученик'})`;
+        listEl.appendChild(li);
+      }
+      document.getElementById("online-count").textContent = count;
     });
 
-    localStorage.setItem("tabs", JSON.stringify(tabs));
-    document.getElementById("tab-name").value = "";
-    toggleAdminPanel();
-    renderTabs();
+    // 2. Вкладки (автосоздание стандартных, если их нет)
+    db.ref('tabs').once('value', snapshot => {
+      if (!snapshot.exists()) {
+        db.ref('tabs').set({
+          "tab_1": { name: "📊 Оценки класса", type: "grades", grades: {} },
+          "tab_2": { name: "📚 Учебные материалы", type: "media", url: "" },
+          "tab_3": { name: "💬 Общий чат", type: "chat", messages: {} }
+        });
+      }
+    });
+
+    db.ref('tabs').on('value', snapshot => {
+      renderTabs(snapshot.val() || {});
+    });
   }
 
-  function deleteTab(tabId) {
-    if (!confirm("Удалить эту вкладку?")) return;
-    let tabs = JSON.parse(localStorage.getItem("tabs"));
-    tabs = tabs.filter(t => t.id !== tabId);
-    localStorage.setItem("tabs", JSON.stringify(tabs));
-    renderTabs();
-  }
+  // Отрисовка вкладок слева и контента справа
+  function renderTabs(tabs) {
+    const sidebar = document.getElementById("sidebar-tabs");
+    const contents = document.getElementById("tabs-contents");
+    sidebar.innerHTML = "";
+    contents.innerHTML = "";
 
-  function renderTabs() {
-    const tabsHeader = document.getElementById("tabs-header");
-    const tabsContents = document.getElementById("tabs-contents");
-    tabsHeader.innerHTML = "";
-    tabsContents.innerHTML = "";
+    let firstId = null;
+    let keys = Object.keys(tabs);
 
-    const tabs = JSON.parse(localStorage.getItem("tabs"));
+    if (keys.length > 0 && !activeTabId) {
+      activeTabId = keys[0];
+    }
 
-    tabs.forEach((tab, index) => {
-      // Кнопка в сайдбаре слева
-      const btn = document.createElement("button");
-      btn.className = `tab-btn ${index === 0 ? 'active' : ''}`;
-      btn.innerHTML = `<span>${tab.name}</span>`;
-      btn.onclick = (e) => switchTab(tab.id, e);
-      tabsHeader.appendChild(btn);
+    keys.forEach(id => {
+      let tab = tabs[id];
+      if (!firstId) firstId = id;
 
-      // Контент вкладки справа
-      const content = document.createElement("div");
-      content.className = `tab-content ${index === 0 ? 'active' : ''}`;
-      content.id = `content_${tab.id}`;
+      // Кнопка в сайдбаре
+      let btn = document.createElement("button");
+      btn.className = `tab-item ${activeTabId === id ? 'active' : ''}`;
+      btn.textContent = tab.name;
+      btn.onclick = () => {
+        activeTabId = id;
+        renderTabs(tabs);
+      };
+      sidebar.appendChild(btn);
 
-      let deleteHtml = currentRole === 'admin' ? `<button onclick="deleteTab('${tab.id}')" class="danger-btn" style="width:auto; padding:6px 12px; font-size:12px; margin-bottom:15px;">Удалить вкладку</button>` : '';
+      // Контент вкладки
+      let panel = document.createElement("div");
+      panel.className = `tab-panel ${activeTabId === id ? 'active' : ''}`;
+      
+      let deleteBtnHtml = (currentRole === 'admin') ? `<button onclick="deleteTab('${id}')" class="btn-danger" style="width:auto; padding:6px 12px; font-size:12px; margin-bottom:15px;">Удалить эту вкладку</button>` : '';
 
       if (tab.type === 'grades') {
-        let students = JSON.parse(localStorage.getItem("users")).filter(u => u.role === 'student');
-        let gradesData = tab.grades || {};
+        db.ref('users').once('value', uSnap => {
+          let students = [];
+          let uData = uSnap.val() || {};
+          for (let u in uData) {
+            if (uData[u].role === 'student') students.push(u);
+          }
 
-        let rows = students.map(s => `
-          <tr style="border-bottom: 1px solid var(--border-color);">
-            <td style="padding: 12px;">${s.username}</td>
-            <td style="padding: 12px;"><b>${gradesData[s.username] || 'Нет оценки'}</b></td>
-            ${currentRole === 'teacher' || currentRole === 'admin' ? `
-              <td style="padding: 12px; display:flex; gap:8px; align-items:center;">
-                <input type="text" id="grade_${tab.id}_${s.username}" placeholder="Оценка" style="width:100px; margin:0;">
-                <button onclick="saveGrade('${tab.id}', '${s.username}')" style="width:auto; padding:8px 14px; margin:0;">Поставить</button>
-              </td>` : ''}
-          </tr>
-        `).join('');
-
-        content.innerHTML = `
-          ${deleteHtml}
-          <h3 style="margin-top:0;">Оценочный журнал</h3>
-          <table style="width:100%; border-collapse: collapse; background:white; border: 1px solid var(--border-color); border-radius: 8px; overflow:hidden;">
-            <tr style="background: #f9fafb; text-align: left; border-bottom: 1px solid var(--border-color);">
-              <th style="padding: 12px;">Ученик</th>
-              <th style="padding: 12px;">Текущая оценка</th>
-              ${currentRole === 'teacher' || currentRole === 'admin' ? '<th style="padding: 12px;">Действие</th>' : ''}
+          let gradesData = tab.grades || {};
+          let rows = students.map(s => `
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding:12px;">${s}</td>
+              <td style="padding:12px;"><b>${gradesData[s] || 'Нет оценки'}</b></td>
+              ${(currentRole === 'teacher' || currentRole === 'admin') ? `
+                <td style="padding:12px; display:flex; gap:8px; align-items:center;">
+                  <input type="text" id="g_${id}_${s}" placeholder="Оценка" style="width:90px; margin:0;">
+                  <button onclick="saveGrade('${id}', '${s}')" style="width:auto; padding:8px 12px; margin:0;">Поставить</button>
+                </td>` : ''}
             </tr>
-            ${students.length ? rows : '<tr><td colspan="3" style="padding:20px; text-align:center; color:#6b7280;">Нет зарегистрированных учеников. Администратор может создать их через иконку 👤 сверху справа.</td></tr>'}
-          </table>
-        `;
+          `).join('');
+
+          panel.innerHTML = `
+            ${deleteBtnHtml}
+            <h3 style="margin-top:0;">${tab.name}</h3>
+            <table style="width:100%; border-collapse:collapse; background:white; border:1px solid var(--border); border-radius:8px; overflow:hidden;">
+              <tr style="background:#f9fafb; text-align:left; border-bottom:1px solid var(--border);">
+                <th style="padding:12px;">Ученик</th>
+                <th style="padding:12px;">Оценка</th>
+                ${(currentRole === 'teacher' || currentRole === 'admin') ? '<th style="padding:12px;">Действие</th>' : ''}
+              </tr>
+              ${students.length ? rows : '<tr><td colspan="3" style="padding:20px; text-align:center; color:#6b7280;">Нет учеников. Администратор может создать их через кнопку «👤 Участники».</td></tr>'}
+            </table>
+          `;
+        });
       } 
       else if (tab.type === 'media') {
-        content.innerHTML = `
-          ${deleteHtml}
-          <h3 style="margin-top:0;">Медиа-материалы и видео</h3>
-          ${currentRole === 'admin' || currentRole === 'teacher' ? `
-            <div style="background:#f9fafb; padding:15px; border-radius:8px; border:1px solid var(--border-color); margin-bottom:15px;">
-              <label style="font-weight:600; font-size:13px;">Ссылка на видео (YouTube / Embed) или картинку:</label>
-              <input type="text" id="media_url_${tab.id}" placeholder="Вставьте ссылку..." value="${tab.url || ''}">
-              <button onclick="saveMedia('${tab.id}')" style="width:auto;">Сохранить ссылку</button>
+        panel.innerHTML = `
+          ${deleteBtnHtml}
+          <h3 style="margin-top:0;">${tab.name}</h3>
+          ${(currentRole === 'admin' || currentRole === 'teacher') ? `
+            <div style="background:#f9fafb; padding:15px; border-radius:8px; border:1px solid var(--border); margin-bottom:15px;">
+              <label style="font-size:13px; font-weight:600;">Ссылка на видео (YouTube / Embed) или картинку:</label>
+              <input type="text" id="media_url_${id}" placeholder="Вставьте ссылку..." value="${tab.url || ''}" style="width:100%;">
+              <button onclick="saveMedia('${id}')" style="width:auto;">Обновить для всех</button>
             </div>
           ` : ''}
-          <div style="flex:1; border:1px solid var(--border-color); border-radius:8px; background:#000; overflow:hidden; display:flex; justify-content:center; align-items:center; min-height:400px;">
-            ${tab.url ? `<iframe src="${tab.url}" width="100%" height="100%" style="border:none;"></iframe>` : '<span style="color:#9ca3af;">Медиа-материал не выбран или ссылка не указана</span>'}
+          <div style="flex:1; border:1px solid var(--border); border-radius:8px; background:#000; overflow:hidden; min-height:400px; display:flex; align-items:center; justify-content:center;">
+            ${tab.url ? `<iframe src="${tab.url}" width="100%" height="100%" style="border:none;"></iframe>` : '<span style="color:#9ca3af;">Материал не выбран преподавателем</span>'}
           </div>
         `;
       } 
       else if (tab.type === 'chat') {
-        let messages = tab.messages || [];
-        let chatHtml = messages.map(m => `
-          <div style="margin-bottom: 10px; padding: 10px 14px; background: #f9fafb; border-radius: 8px; border-left: 4px solid var(--primary-color);">
-            <strong style="color: #111827;">${m.user}</strong> <span style="font-size:11px; color:#6b7280;">(${m.role})</span>:
-            <div style="margin-top: 4px; color:#374151;">${m.text}</div>
+        let msgs = tab.messages || {};
+        let chatHtml = Object.values(msgs).map(m => `
+          <div style="margin-bottom:10px; padding:10px 14px; background:#f9fafb; border-radius:8px; border-left:4px solid var(--primary);">
+            <strong style="color:#111827;">${m.user}</strong>:
+            <div style="margin-top:4px; color:#374151;">${m.text}</div>
           </div>
         `).join('');
 
-        content.innerHTML = `
-          ${deleteHtml}
-          <h3 style="margin-top:0;">Интерактивный чат урока</h3>
-          <div style="border: 1px solid var(--border-color); background: #ffffff; flex:1; min-height:250px; max-height: 60vh; overflow-y: scroll; padding: 15px; border-radius: 8px; margin-bottom: 15px;" id="chat_box_${tab.id}">
-            ${chatHtml || '<span style="color:#9ca3af;">В чате пока нет сообщений. Напишите первыми!</span>'}
+        panel.innerHTML = `
+          ${deleteBtnHtml}
+          <h3 style="margin-top:0;">${tab.name}</h3>
+          <div style="border:1px solid var(--border); background:#ffffff; flex:1; min-height:250px; max-height:55vh; overflow-y:auto; padding:15px; border-radius:8px; margin-bottom:12px;" id="chat_box_${id}">
+            ${chatHtml || '<span style="color:#9ca3af;">Сообщений пока нет...</span>'}
           </div>
-          <div style="display: flex; gap: 10px;">
-            <input type="text" id="chat_text_${tab.id}" placeholder="Введите сообщение..." style="margin:0;">
-            <button onclick="sendMessage('${tab.id}')" style="width: 140px; margin:0;">Отправить</button>
+          <div style="display:flex; gap:10px;">
+            <input type="text" id="chat_input_${id}" placeholder="Напишите сообщение..." style="flex:1; margin:0;" onkeypress="if(event.key==='Enter') sendMessage('${id}')">
+            <button onclick="sendMessage('${id}')" style="width:130px; margin:0;">Отправить</button>
           </div>
         `;
+        setTimeout(() => {
+          let box = document.getElementById(`chat_box_${id}`);
+          if (box) box.scrollTop = box.scrollHeight;
+        }, 50);
       }
 
-      tabsContents.appendChild(content);
+      contents.appendChild(panel);
     });
   }
 
-  function switchTab(tabId, event) {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    event.currentTarget.classList.add('active');
-    document.getElementById(`content_${tabId}`).classList.add('active');
+  // Действия администратора и пользователей
+  function createUser() {
+    let u = document.getElementById("new-user").value.trim();
+    let p = document.getElementById("new-pass").value.trim();
+    let r = document.getElementById("new-role").value;
+    if (!u || !p) return alert("Заполните все поля!");
+
+    db.ref('users/' + u).set({ password: p, role: r }, () => {
+      alert("Пользователь успешно создан!");
+      document.getElementById("new-user").value = "";
+      document.getElementById("new-pass").value = "";
+    });
+  }
+
+  function createTab() {
+    let name = document.getElementById("new-tab-name").value.trim();
+    let type = document.getElementById("new-tab-type").value;
+    if (!name) return alert("Введите название вкладки!");
+
+    let newId = "tab_" + Date.now();
+    let tabData = { name: name, type: type };
+    if (type === 'grades') tabData.grades = {};
+    if (type === 'media') tabData.url = "";
+    if (type === 'chat') tabData.messages = {};
+
+    db.ref('tabs/' + newId).set(tabData, () => {
+      document.getElementById("new-tab-name").value = "";
+      activeTabId = newId;
+    });
+  }
+
+  function deleteTab(id) {
+    if (!confirm("Удалить эту вкладку?")) return;
+    db.ref('tabs/' + id).remove(() => {
+      activeTabId = null;
+    });
   }
 
   function saveGrade(tabId, studentName) {
-    let val = document.getElementById(`grade_${tabId}_${studentName}`).value;
-    let tabs = JSON.parse(localStorage.getItem("tabs"));
-    let tab = tabs.find(t => t.id === tabId);
-    if (!tab.grades) tab.grades = {};
-    tab.grades[studentName] = val;
-    localStorage.setItem("tabs", JSON.stringify(tabs));
-    renderTabs();
+    let val = document.getElementById(`g_${tabId}_${studentName}`).value;
+    db.ref(`tabs/${tabId}/grades/${studentName}`).set(val);
   }
 
   function saveMedia(tabId) {
-    let url = document.getElementById(`media_url_${tabId}`).value;
-    let tabs = JSON.parse(localStorage.getItem("tabs"));
-    let tab = tabs.find(t => t.id === tabId);
-    tab.url = url;
-    localStorage.setItem("tabs", JSON.stringify(tabs));
-    renderTabs();
+    let url = document.getElementById(`media_url_${tabId}`).value.trim();
+    db.ref(`tabs/${tabId}/url`).set(url);
   }
 
   function sendMessage(tabId) {
-    let textInput = document.getElementById(`chat_text_${tabId}`);
-    let text = textInput.value.trim();
-    if (!text) return;
-    let tabs = JSON.parse(localStorage.getItem("tabs"));
-    let tab = tabs.find(t => t.id === tabId);
-    if (!tab.messages) tab.messages = [];
-    tab.messages.push({ 
-      user: currentUser, 
-      role: currentRole === 'admin' ? 'Админ' : currentRole === 'teacher' ? 'Учитель' : 'Ученик', 
-      text: text 
+    let input = document.getElementById(`chat_input_${tabId}`);
+    if (!input.value.trim()) return;
+    db.ref(`tabs/${tabId}/messages`).push({
+      user: currentUser,
+      text: input.value.trim()
     });
-    localStorage.setItem("tabs", JSON.stringify(tabs));
-    textInput.value = "";
-    renderTabs();
+    input.value = "";
+  }
+
+  function toggleUsersPopup() {
+    document.getElementById("users-popup").classList.toggle("hidden");
   }
 
   function logout() {
-    currentUser = null;
-    currentRole = null;
-    document.getElementById("main-dashboard").classList.add("hidden");
-    document.getElementById("login-screen").classList.remove("hidden");
-    document.getElementById("username").value = "";
-    document.getElementById("password").value = "";
+    if (currentUser) db.ref('presence/' + currentUser).remove();
+    location.reload();
   }
 </script>
 
